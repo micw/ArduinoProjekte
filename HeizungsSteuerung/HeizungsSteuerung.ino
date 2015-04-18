@@ -17,6 +17,7 @@
  * - Schleifkontakt an Analog Pin 0
  *
  * 4. 433 MHz-Sender http://www.homecontrol4.me/de/?id=bauanleitung
+ *    Elro Funksteckdose https://bitbucket.org/fuzzillogic/433mhzforarduino/wiki/Home 
  * - GND angeschlossen
  * - +5V angeschlossen
  * - Data <-> Digital Pin 8
@@ -27,13 +28,19 @@
 #include <OneWire.h>
 #include <DS18X20.h>
 #include <OneWireListener.h>
+#include <RemoteTransmitter.h>
 
 const int PIN_SENSOR=9;
+const int PIN_SENDER=8;
 const int PIN_LED=13;
 const int PIN_POTI_ANALOG=0;
+const unsigned short SWITCH_SYSTEM_CODE=30;
+const unsigned char SWITCH_CHANNEL='A';
 
 
 OneWireListener onewire1=OneWireListener(PIN_SENSOR);
+ElroTransmitter switchTransmitter=ElroTransmitter(PIN_SENDER);
+
 
 const int destMin=4;
 const int destMax=30;
@@ -55,9 +62,7 @@ void setup() {
   
   onewire1.setDS18x20TemperatureCallBack(receiveDS18x20Temperature);
   onewire1.initialize();
-  delay(100);
-  onewire1.readValues();
-  delay(1000);
+  delay(1000); // dem Sensor kurz Zeit geben
 }
 
 boolean onOff=false;
@@ -68,9 +73,11 @@ bool onOffOld=false;
 
 int loopCounter=-1;
 void loop() {
-  bool changed=false;
+  bool changed=false; // relevant für Display
+  bool switchChanged=false; // relevant für Display
+  if (loopCounter<0) switchChanged=true; // beim 1. Aufruf Schaltbefehl sofort senden
   
-  if (++loopCounter>=1000) loopCounter=0;
+  if (++loopCounter>=32000 || loopCounter<0) loopCounter=0; // Überlauf verhindern
   if ((loopCounter%50)==0) { // every 5s
     onewire1.readValues();
     changed=true;
@@ -84,6 +91,7 @@ void loop() {
   if (destOld!=destTempOn) {
     destOld=destTempOn;
     changed=true;
+    switchChanged=true;
   }
 
   if (onOff && myTemp>destTempOff) onOff=false;
@@ -94,7 +102,7 @@ void loop() {
     changed=true;
   }
 
-  if (changed) { // on change 10s -> send data + switch
+  if (changed) { // Änderung -> Display+StatusLED updaten
     Serial.print("dest = ");
     Serial.println(destTempOn);
     
@@ -103,6 +111,12 @@ void loop() {
   
     digitalWrite(PIN_LED, onOff);
   }
-    
+  
+  if (switchChanged||((loopCounter%300)==0)) { // Schaltbefehl bei Änderung Status senden und alle 30s wiederholen (stellt sicher, dass die Heizung nicht an oder aus bleibt)
+    noInterrupts();
+    switchTransmitter.sendSignal(SWITCH_SYSTEM_CODE,SWITCH_CHANNEL,onOff);
+    interrupts();
+  }
+
   delay(100);
 }
