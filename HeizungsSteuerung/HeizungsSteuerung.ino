@@ -142,15 +142,17 @@ void loop() {
     dtostrf(myTemp,2,1,tmpIstStr);
     char displayMsg[16];
     lcd.setCursor(0,0);
-    sprintf(displayMsg, "IST: %s C", tmpIstStr);
+    sprintf(displayMsg, "IST: %s +C", tmpIstStr);
+    displayMsg[10]=0xDF; //°
     lcd.printstr(displayMsg);
     lcd.setCursor(0,1);
     if (onOff) {
-      sprintf(displayMsg, "MIN: %2d.0 C  Ein", (int)destTempOn);
+      sprintf(displayMsg, "MIN: %2d.0 +C Ein", (int)destTempOn);
     }
     else {
-      sprintf(displayMsg, "MIN: %2d.0 C  Aus", (int)destTempOn);
+      sprintf(displayMsg, "MIN: %2d.0 +C Aus", (int)destTempOn);
     }
+    displayMsg[10]=0xDF; //°
     lcd.printstr(displayMsg);
   }
   
