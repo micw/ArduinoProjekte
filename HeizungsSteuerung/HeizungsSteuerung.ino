@@ -3,6 +3,9 @@
  * Heizungssteuerung mit Hysterese, einstellbarer Schalttemperatur und
  * Display mit Anzeige Schalttemperatur + aktuelle Temperatur
  *
+ * Der im Arduino eingebaute Watchdog wird verwendet um sicherzustellen, dass die Steuerung
+ * (sollte sie jemals abstürzen), nie mehr als 8s hängen bleibt.
+ *
  * Hardware:
  * 1. Arduino (getestet mit Uno und Nano-China-Billig-Nachbau)
  *
@@ -22,13 +25,29 @@
  * - +5V angeschlossen
  * - Data <-> Digital Pin 8
  *
+ * 5. (optional) extende Status-Leuchte http://www.arduino.cc/en/Tutorial/Blink?from=Tutorial.BlinkingLED
+ * - GND angeschlossen
+ * - LED+ <-> 220 Ohm <-> PinDigital Pin 13
+ *
+ * 6. (optional) LDC-Display
+ *     http://www.dfrobot.com/index.php?route=product/product&keyword=160&product_id=135
+ *     http://www.geeetech.com/wiki/index.php/Serial_I2C_1602_16%C3%972_Character_LCD_Module
+ * - Display GND <-> GND
+ * - Display VCC <-> +5V
+ * - Display SDA <-> Analog Pin 4
+ * - Display SCL <-> Analog Pin 5
+ *
  ************************************************************************/
 
 
+#include "avr/wdt.h" // Watchdog
 #include <OneWire.h>
 #include <DS18X20.h>
 #include <OneWireListener.h>
 #include <RemoteTransmitter.h>
+#include <Wire.h> 
+#include <LiquidCrystal_I2C.h>
+
 
 const int PIN_SENSOR=9;
 const int PIN_SENDER=8;
@@ -40,6 +59,7 @@ const unsigned char SWITCH_CHANNEL='A';
 
 OneWireListener onewire1=OneWireListener(PIN_SENSOR);
 ElroTransmitter switchTransmitter=ElroTransmitter(PIN_SENDER);
+LiquidCrystal_I2C lcd=LiquidCrystal_I2C(0x27,16,2);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 
 
 const int destMin=4;
@@ -57,12 +77,18 @@ void receiveDS18x20Temperature(int sensorNumber, unsigned int sensorId, float te
 }
 
 void setup() {
+  wdt_enable(WDTO_8S); // Watchdog muss alle 8 Sekunden resettet werden
   Serial.begin(115200);
   pinMode(PIN_LED, OUTPUT);  
   
+  lcd.init();
+  lcd.backlight();
+  
   onewire1.setDS18x20TemperatureCallBack(receiveDS18x20Temperature);
   onewire1.initialize();
+  wdt_reset(); // Watchdock resetten
   delay(1000); // dem Sensor kurz Zeit geben
+  wdt_reset(); // Watchdock resetten
 }
 
 boolean onOff=false;
@@ -73,6 +99,7 @@ bool onOffOld=false;
 
 int loopCounter=-1;
 void loop() {
+  wdt_reset(); // Watchdock resetten
   bool changed=false; // relevant für Display
   bool switchChanged=false; // relevant für Display
   if (loopCounter<0) switchChanged=true; // beim 1. Aufruf Schaltbefehl sofort senden
@@ -110,6 +137,21 @@ void loop() {
     else Serial.println("off");
   
     digitalWrite(PIN_LED, onOff);
+    
+    char tmpIstStr[4];
+    dtostrf(myTemp,2,1,tmpIstStr);
+    char displayMsg[16];
+    lcd.setCursor(0,0);
+    sprintf(displayMsg, "IST: %s C", tmpIstStr);
+    lcd.printstr(displayMsg);
+    lcd.setCursor(0,1);
+    if (onOff) {
+      sprintf(displayMsg, "MIN: %2d.0 C  Ein", (int)destTempOn);
+    }
+    else {
+      sprintf(displayMsg, "MIN: %2d.0 C  Aus", (int)destTempOn);
+    }
+    lcd.printstr(displayMsg);
   }
   
   if (switchChanged||((loopCounter%300)==0)) { // Schaltbefehl bei Änderung Status senden und alle 30s wiederholen (stellt sicher, dass die Heizung nicht an oder aus bleibt)
