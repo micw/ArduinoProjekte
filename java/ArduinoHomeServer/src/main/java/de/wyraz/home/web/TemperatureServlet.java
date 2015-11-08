@@ -234,7 +234,7 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
             writer.println("<item><title>Schuppen</title><description>"+getFormattedValue("ds18s20-8675")+"</description></item>");
             writer.println("<item><title>Lab</title><description>"+getFormattedValue("ds18s20-22317")+"</description></item>");
             writer.println("<item><title>Server</title><description>"+getFormattedValue("ds18s20-43501")+"</description></item>");
-            writer.println("<item><title>Helligkeit</title><description>"+getFormattedValue("br1")+"</description></item>");
+            writer.println("<item><title>Helligkeit</title><description>"+getFormattedValue("b1")+"</description></item>");
             writer.println("</channel>");
             writer.println("</rss>");
             return;
