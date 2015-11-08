@@ -57,7 +57,9 @@ const int SENSOR_CHECK_INTERVAL=30000;
 const byte BRIGTHNESS_SENSOR_ID=1;
 const int PIN_BRIGHTNESS_ANALOG=1;
 const int PIN_BRIGHTNESS_LED=7;
-const int BRIGHTNESS_THRESOLD=650; // Unterhalb welcher Helligkeit soll die LED an gehen?
+// Unterhalb welcher Helligkeit soll die LED an gehen?
+// In meinem Setup fällt die Helligkeit während der Dämmerung (im Oktober) innerhalb von 10 Minuten von 200 auf 100
+const int BRIGHTNESS_THRESOLD=120;
 #endif
 
 
