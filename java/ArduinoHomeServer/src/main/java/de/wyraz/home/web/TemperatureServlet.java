@@ -44,7 +44,7 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
         trt.shutdown();
     }
     
-    protected Map<String,Value> temperatures=new HashMap<String, TemperatureServlet.Value>();
+    protected Map<String,Value> sensorValues=new HashMap<String, TemperatureServlet.Value>();
     
     protected final Set<String> sensorsAussen=new HashSet(Arrays.asList("ds18s20-49914","ds18s20-9781","ds18s20-36771","ds18s20-32527"));
 
@@ -61,12 +61,11 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
     public void setSensorValue(SensorType type, String key, float value, int sequenceNumber)
     {
         System.err.println(DateFormat.getDateTimeInstance(DateFormat.SHORT,DateFormat.MEDIUM,Locale.GERMANY).format(System.currentTimeMillis())+" "+type+" "+key+": "+value+" (#"+sequenceNumber+")");
-        if (type!=SensorType.TEMPERATURE) return;
         Value val=new Value();
         val.type=type;
         val.value=value;
         val.ts=System.currentTimeMillis();
-        temperatures.put(key, val);
+        sensorValues.put(key, val);
         
         if (sensorsAussen.contains(key))
         {
@@ -91,27 +90,40 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
     
     protected String getFormattedValue(String key)
     {
-        Value val=getValue(key,false);
+        Value val=getValue(key,true);
+        
         if (val==null) return "---";
+        
+        String result;
+        
         if (val.type==SensorType.TEMPERATURE||val.type==SensorType.REMOTE_SWITCH_MIN_TEMP)
         {
             NumberFormat nf=NumberFormat.getInstance(Locale.GERMANY);
             int digits=(val.type==SensorType.REMOTE_SWITCH_MIN_TEMP)?0:1;
             nf.setMinimumFractionDigits(digits);
             nf.setMaximumFractionDigits(digits);
-            return nf.format(val.value)+" °C";
+            result=nf.format(val.value)+" °C";
         }
-        if (val.type==SensorType.REMOTE_SWITCH_OUT)
+        else if (val.type==SensorType.REMOTE_SWITCH_OUT)
         {
-            return (val.value==0)?"OFF":"ON";
+        	result=(val.value==0)?"OFF":"ON";
         }
-        NumberFormat nf=NumberFormat.getInstance(Locale.GERMANY);
-        nf.setMaximumFractionDigits(2);
-        return nf.format(val.value);
+        else if (val.type==SensorType.BRIGHTNESS)
+        {
+        	result=""+val.value;
+        }
+        else
+        {
+	        NumberFormat nf=NumberFormat.getInstance(Locale.GERMANY);
+	        nf.setMaximumFractionDigits(2);
+	        result=nf.format(val.value);
+        }
+        if (val.outdated) result="("+result+")";
+        return result;
     }
     protected Value getValue(String key, boolean getOutdatedAsWell)
     {
-        Value val=temperatures.get(key);
+        Value val=sensorValues.get(key);
         if (val!=null)
         {
             long maxAgeInMinutes;
@@ -125,6 +137,9 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
                     break;
                 case TEMPERATURE:
                     maxAgeInMinutes=15;
+                    break;
+                case BRIGHTNESS:
+                    maxAgeInMinutes=5;
                     break;
                 default:
                     maxAgeInMinutes=10;
@@ -154,7 +169,7 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
             resp.setCharacterEncoding("utf-8");
             PrintWriter writer=resp.getWriter();
             writer.println("<html><body><table>");
-            for (String key:new TreeSet<String>(this.temperatures.keySet()))
+            for (String key:new TreeSet<String>(this.sensorValues.keySet()))
             {
                 writer.println("<tr><td>"+key+":</td><td>"+getFormattedValue(key)+"</td></tr>");
             }
@@ -179,7 +194,7 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
             try
             {
                 JSONObject result=new JSONObject();
-                for (String key:new TreeSet<String>(this.temperatures.keySet()))
+                for (String key:new TreeSet<String>(this.sensorValues.keySet()))
                 {
                     Value value=getValue(key, true);
                     if (value==null) continue;
@@ -219,6 +234,7 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
             writer.println("<item><title>Schuppen</title><description>"+getFormattedValue("ds18s20-8675")+"</description></item>");
             writer.println("<item><title>Lab</title><description>"+getFormattedValue("ds18s20-22317")+"</description></item>");
             writer.println("<item><title>Server</title><description>"+getFormattedValue("ds18s20-43501")+"</description></item>");
+            writer.println("<item><title>Helligkeit</title><description>"+getFormattedValue("br1")+"</description></item>");
             writer.println("</channel>");
             writer.println("</rss>");
             return;
