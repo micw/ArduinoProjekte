@@ -110,7 +110,9 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
         }
         else if (val.type==SensorType.BRIGHTNESS)
         {
-        	result=""+val.value;
+            NumberFormat nf=NumberFormat.getIntegerInstance(Locale.GERMANY);
+            nf.setGroupingUsed(false);
+            result=nf.format(val.value);
         }
         else
         {
