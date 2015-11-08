@@ -1,0 +1,21 @@
+# VirtualWrite Protokoll für Temperatur, Sensor- und Schaltdaten via 433 MHz
+
+- Geschwindigkeit: 1000
+- Sensorwerte werden 2x gesendet
+- Datenformat: 1. Zeichen gibt Message-Typ an. Länge der Message ist abhängig vom Typ
+- Typ 'a' D18x20 Temperatur, 6 Byte
+  - 2 Byte Sensor-ID
+  - 2 Byte Temperatur in 100stel °C (durch 100 teilen für Tempertaur)
+  - 1 Byte Sequenznummer
+- Typ 'b' Heizungs-Status, 6 Byte
+  - 1 Byte Wert (TODO. Vermutlich 0=aus, 1=an)
+  - 1 Byte SystemCode (0-31) für Heizung-Funkschalter
+  - 1 Byte Kanal (a-d) für Heizung-Funkschalter
+  - 1 Byte Einschalt-Tempertur in °C
+  - 1 Byte Sequenznummer
+- Typ 'c' Empfangene Funkschalter-Codes, 5 Byte
+  - TODO: Dokumentieren
+- Typ 'd' Helligkeitswert, 5 Byte
+  - 1 Byte SensorID (in Arduino einprogrammiert)
+  - 2 Byte Helligkeitswert (0-1023)
+  - 1 Byte Sequenznummer
