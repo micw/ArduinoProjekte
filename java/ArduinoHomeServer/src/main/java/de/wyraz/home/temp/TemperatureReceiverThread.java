@@ -169,7 +169,8 @@ public class TemperatureReceiverThread extends Thread
         TEMPERATURE,
         REMOTE_SWITCH_OUT,
         REMOTE_SWITCH_MIN_TEMP,
-        BRIGHTNESS,
+        BRIGHTNESS
+        ;
     }
     
     public static interface SensorValueListener
