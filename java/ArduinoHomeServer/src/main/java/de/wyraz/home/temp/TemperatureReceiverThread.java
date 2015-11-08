@@ -135,7 +135,7 @@ public class TemperatureReceiverThread extends Thread
                 continue;
             }
             
-            if (bytes[0]=='d' && count==6) // Helligkeit
+            if (bytes[0]=='d' && count==5) // Helligkeit
             {
                 int pos=1;
                 
