@@ -3,7 +3,7 @@
 - Geschwindigkeit: 1000
 - Sensorwerte werden 2x gesendet
 - Datenformat: 1. Zeichen gibt Message-Typ an. Länge der Message ist abhängig vom Typ
-- Typ 'a' D18x20 Temperatur, 6 Byte
+- Typ 'a' Temperatur, 6 Byte
   - 2 Byte Sensor-ID
   - 2 Byte Temperatur in 100stel °C (durch 100 teilen für Tempertaur)
   - 1 Byte Sequenznummer
@@ -18,4 +18,8 @@
 - Typ 'd' Helligkeitswert, 5 Byte
   - 1 Byte SensorID (in Arduino einprogrammiert)
   - 2 Byte Helligkeitswert (0-1023)
+  - 1 Byte Sequenznummer
+- Typ 'e' Luftfeuchte, 6 Byte
+  - 2 Byte Sensor-ID
+  - 2 Byte Luftfeuchte in 100stel % (durch 100 teilen für %)
   - 1 Byte Sequenznummer
