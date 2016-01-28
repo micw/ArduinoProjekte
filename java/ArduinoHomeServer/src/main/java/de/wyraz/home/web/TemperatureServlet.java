@@ -46,7 +46,7 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
     
     protected Map<String,Value> sensorValues=new HashMap<String, TemperatureServlet.Value>();
     
-    protected final Set<String> sensorsAussen=new HashSet(Arrays.asList("ds18s20-49914","ds18s20-9781","ds18s20-36771","ds18s20-32527"));
+    protected final Set<String> sensorsAussen=new HashSet(Arrays.asList("temp-49914","temp-9781","temp-36771","temp-32527"));
 
     // ds18s20-1706 - Pool (alt, 2polig)
     // ds18s20-9781 - Schuppen außen
@@ -87,41 +87,53 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
         long ts;
         boolean outdated;
     }
-    
+
     protected String getFormattedValue(String key)
     {
         Value val=getValue(key,true);
         
         if (val==null) return "---";
         
-        String result;
+        String result=getFormattedValue(val);
+        if (val.outdated) result="("+result+")";
+        return result;
         
+    }
+    
+    protected String getFormattedValue(Value val)
+    {
         if (val.type==SensorType.TEMPERATURE||val.type==SensorType.REMOTE_SWITCH_MIN_TEMP)
         {
             NumberFormat nf=NumberFormat.getInstance(Locale.GERMANY);
             int digits=(val.type==SensorType.REMOTE_SWITCH_MIN_TEMP)?0:1;
             nf.setMinimumFractionDigits(digits);
             nf.setMaximumFractionDigits(digits);
-            result=nf.format(val.value)+" °C";
+            return nf.format(val.value)+" °C";
         }
-        else if (val.type==SensorType.REMOTE_SWITCH_OUT)
+        
+        if (val.type==SensorType.HUMIDITY)
         {
-        	result=(val.value==0)?"OFF":"ON";
+            NumberFormat nf=NumberFormat.getInstance(Locale.GERMANY);
+            nf.setMinimumFractionDigits(1);
+            nf.setMaximumFractionDigits(1);
+            return nf.format(val.value)+" %";
         }
-        else if (val.type==SensorType.BRIGHTNESS)
+        
+        if (val.type==SensorType.REMOTE_SWITCH_OUT)
+        {
+        	return (val.value==0)?"OFF":"ON";
+        }
+        
+        if (val.type==SensorType.BRIGHTNESS)
         {
             NumberFormat nf=NumberFormat.getIntegerInstance(Locale.GERMANY);
             nf.setGroupingUsed(false);
-            result=nf.format(val.value);
+            return nf.format(val.value);
         }
-        else
-        {
-	        NumberFormat nf=NumberFormat.getInstance(Locale.GERMANY);
-	        nf.setMaximumFractionDigits(2);
-	        result=nf.format(val.value);
-        }
-        if (val.outdated) result="("+result+")";
-        return result;
+        
+        NumberFormat nf=NumberFormat.getInstance(Locale.GERMANY);
+        nf.setMaximumFractionDigits(2);
+	    return nf.format(val.value);
     }
     protected Value getValue(String key, boolean getOutdatedAsWell)
     {
@@ -138,6 +150,7 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
                     maxAgeInMinutes=5;
                     break;
                 case TEMPERATURE:
+                case HUMIDITY:
                     maxAgeInMinutes=15;
                     break;
                 case BRIGHTNESS:
@@ -232,10 +245,11 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
             writer.println("<channel>");
             writer.println("<title>MW Home</title>");
             writer.println("<item><title>Außen "+new SimpleDateFormat("HH:mm").format(System.currentTimeMillis())+"</title><description>"+getFormattedValue("aussenMin")+"</description></item>");
-            writer.println("<item><title>Pool</title><description>"+getFormattedValue("ds18s20-57728")+"</description></item>");
-            writer.println("<item><title>Schuppen</title><description>"+getFormattedValue("ds18s20-8675")+"</description></item>");
-            writer.println("<item><title>Lab</title><description>"+getFormattedValue("ds18s20-22317")+"</description></item>");
-            writer.println("<item><title>Server</title><description>"+getFormattedValue("ds18s20-43501")+"</description></item>");
+            writer.println("<item><title>Pool</title><description>"+getFormattedValue("temp-57728")+"</description></item>");
+            writer.println("<item><title>Schuppen</title><description>"+getFormattedValue("temp-8675")+"</description></item>");
+            writer.println("<item><title>Lab</title><description>"+getFormattedValue("temp-22317")+"</description></item>");
+            writer.println("<item><title>Server</title><description>"+getFormattedValue("temp-43501")+"</description></item>");
+            writer.println("<item><title>Wohnz.</title><description>"+getFormattedValue("temp-16")+"/"+getFormattedValue("humi-16")+"</description></item>");
             writer.println("<item><title>Helligkeit</title><description>"+getFormattedValue("b1")+"</description></item>");
             writer.println("</channel>");
             writer.println("</rss>");

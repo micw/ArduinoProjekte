@@ -57,7 +57,7 @@ public class TemperatureReceiverThread extends Thread
 
             int count=packet.getLength();
             
-            if (bytes[0]=='a' && count==6) // DS1820 über 433 MHz (oder direkt)
+            if (bytes[0]=='a' && count==6) // Temperatur (direkt oder über 433 MHz)
             {
                 int pos=1;
                 
@@ -70,7 +70,7 @@ public class TemperatureReceiverThread extends Thread
                 if (lastMessageNum==sequenceNumber) continue;
                 lastMessageNum=sequenceNumber;
                 float f=asInt/100f;
-                listener.setSensorValue(SensorType.TEMPERATURE,"ds18s20-"+channel, f, sequenceNumber);
+                listener.setSensorValue(SensorType.TEMPERATURE,"temp-"+channel, f, sequenceNumber);
                 continue;
             }
             
@@ -149,6 +149,24 @@ public class TemperatureReceiverThread extends Thread
                 continue;
             }
             
+            if (bytes[0]=='e' && count==6) // Luftfeuchte
+            {
+                int pos=1;
+                
+                int channel = (bytes[pos++] & 0xFF) 
+                        | ((bytes[pos++] & 0xFF) << 8);
+                int asInt = (bytes[pos++] & 0xFF) 
+                        | ((bytes[pos++] & 0xFF) << 8);
+                if ((asInt & 0x8000)!=0) asInt=asInt|0xFFFF0000;
+                int sequenceNumber = (bytes[pos++] & 0xFF);
+                if (lastMessageNum==sequenceNumber) continue;
+                lastMessageNum=sequenceNumber;
+                float f=asInt/100f;
+                listener.setSensorValue(SensorType.HUMIDITY,"humi-"+channel, f, sequenceNumber);
+                continue;
+            }
+            
+            
             System.err.print("Invalid Packet with length of "+count+": ");
             for (int i=0;i<count;i++)
             {
@@ -170,6 +188,7 @@ public class TemperatureReceiverThread extends Thread
         REMOTE_SWITCH_OUT,
         REMOTE_SWITCH_MIN_TEMP,
         BRIGHTNESS,
+        HUMIDITY,
         ;
     }
     
