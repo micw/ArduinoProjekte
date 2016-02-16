@@ -121,7 +121,7 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
         
         if (val.type==SensorType.REMOTE_SWITCH_OUT)
         {
-        	return (val.value==0)?"OFF":"ON";
+        	return (val.value==0)?"\u263C":"\u2600";
         }
         
         if (val.type==SensorType.BRIGHTNESS)
@@ -247,7 +247,9 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
             writer.println("<item><title>Außen "+new SimpleDateFormat("HH:mm").format(System.currentTimeMillis())+"</title><description>"+getFormattedValue("aussenMin")+"</description></item>");
             writer.println("<item><title>Pool</title><description>"+getFormattedValue("temp-57728")+"</description></item>");
             writer.println("<item><title>Schuppen</title><description>"+getFormattedValue("temp-8675")+"</description></item>");
-            writer.println("<item><title>Lab</title><description>"+getFormattedValue("temp-22317")+"</description></item>");
+            
+            writer.println("<item><title>Lab "+getFormattedValue("switch-30A")+getFormattedValue("swtemp-30A")+"</title><description>"+getFormattedValue("temp-22317")+"</description></item>");
+            
             writer.println("<item><title>Server</title><description>"+getFormattedValue("temp-43501")+"</description></item>");
             writer.println("<item><title>Wohnz.</title><description>"+getFormattedValue("temp-16")+"/"+getFormattedValue("humi-16")+"</description></item>");
             writer.println("<item><title>Helligkeit</title><description>"+getFormattedValue("b1")+"</description></item>");
