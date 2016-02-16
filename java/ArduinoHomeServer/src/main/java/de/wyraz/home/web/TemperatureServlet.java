@@ -121,7 +121,7 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
         
         if (val.type==SensorType.REMOTE_SWITCH_OUT)
         {
-        	return (val.value==0)?"\u263C":"\u2600";
+        	return (val.value==0)?"AUS":"EIN";
         }
         
         if (val.type==SensorType.BRIGHTNESS)
