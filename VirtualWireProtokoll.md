@@ -11,7 +11,7 @@
   - 1 Byte Wert (TODO. Vermutlich 0=aus, 1=an)
   - 1 Byte SystemCode (0-31) für Heizung-Funkschalter
   - 1 Byte Kanal (a-d) für Heizung-Funkschalter
-  - 1 Byte Einschalt-Tempertur in °C
+  - 1 Byte Einschalt-Temperatur in °C
   - 1 Byte Sequenznummer
 - Typ 'c' Empfangene Funkschalter-Codes, 5 Byte
   - TODO: Dokumentieren
