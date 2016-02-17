@@ -60,12 +60,18 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
     
     public void setSensorValue(String source, SensorType type, String key, float value, int sequenceNumber)
     {
+    	setSensorValue(source, type, key, value, sequenceNumber, null);
+    }
+    
+    public void setSensorValue(String source, SensorType type, String key, float value, int sequenceNumber, String extraInfo)
+    {
         System.err.println(DateFormat.getDateTimeInstance(DateFormat.SHORT,DateFormat.MEDIUM,Locale.GERMANY)
         		.format(System.currentTimeMillis())+" "+source+" "+type+" "+key+": "+value+" (#"+sequenceNumber+")");
         Value val=new Value();
         val.type=type;
         val.value=value;
         val.ts=System.currentTimeMillis();
+        val.extraInfo=extraInfo;
         sensorValues.put(key, val);
         
         if (sensorsAussen.contains(key))
@@ -78,7 +84,9 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
                 if (v!=null) count++;
                 if (v!=null && (minValue==null || minValue>v.value)) minValue=v.value;
             }
-            if (minValue!=null) setSensorValue("min("+count+" values)", SensorType.TEMPERATURE, "aussenMin", minValue, 0);
+            if (minValue!=null) {
+            	setSensorValue("min(aussen)", SensorType.TEMPERATURE, "aussenMin", minValue, 0,count+"/"+sensorsAussen.size());
+            }
         }
         
     }
@@ -89,6 +97,7 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
         float value;
         long ts;
         boolean outdated;
+        String extraInfo;
     }
 
     protected String getFormattedValue(String key)
@@ -99,7 +108,8 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
         
         String result=getFormattedValue(val);
         if (val.outdated) result="("+result+")";
-        return result;
+        if (val.extraInfo!=null) result+=" ("+val.extraInfo+")";
+    	return result;
         
     }
     
