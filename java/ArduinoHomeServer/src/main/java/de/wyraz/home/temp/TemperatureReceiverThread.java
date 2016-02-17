@@ -54,6 +54,7 @@ public class TemperatureReceiverThread extends Thread
         {
             socket.receive(packet);
             byte[] bytes=packet.getData();
+            String source=packet.getAddress().getHostName();
 
             int count=packet.getLength();
             
@@ -70,7 +71,7 @@ public class TemperatureReceiverThread extends Thread
                 if (lastMessageNum==sequenceNumber) continue;
                 lastMessageNum=sequenceNumber;
                 float f=asInt/100f;
-                listener.setSensorValue(SensorType.TEMPERATURE,"temp-"+channel, f, sequenceNumber);
+                listener.setSensorValue(source,SensorType.TEMPERATURE,"temp-"+channel, f, sequenceNumber);
                 continue;
             }
             
@@ -85,8 +86,8 @@ public class TemperatureReceiverThread extends Thread
                 int sequenceNumber = (bytes[pos++] & 0xFF);
                 if (lastMessageNum==sequenceNumber) continue;
                 lastMessageNum=sequenceNumber;
-                listener.setSensorValue(SensorType.REMOTE_SWITCH_OUT,"switch-"+systemCode+channelCode, value, sequenceNumber);
-                listener.setSensorValue(SensorType.REMOTE_SWITCH_MIN_TEMP,"swtemp-"+systemCode+channelCode, minTemp, sequenceNumber);
+                listener.setSensorValue(source,SensorType.REMOTE_SWITCH_OUT,"switch-"+systemCode+channelCode, value, sequenceNumber);
+                listener.setSensorValue(source,SensorType.REMOTE_SWITCH_MIN_TEMP,"swtemp-"+systemCode+channelCode, minTemp, sequenceNumber);
                 continue;
             }
             
@@ -145,7 +146,7 @@ public class TemperatureReceiverThread extends Thread
                 int sequenceNumber = (bytes[pos++] & 0xFF);
                 if (lastMessageNum==sequenceNumber) continue;
                 lastMessageNum=sequenceNumber;
-                listener.setSensorValue(SensorType.BRIGHTNESS,"b"+sensorId, brightness, sequenceNumber);
+                listener.setSensorValue(source,SensorType.BRIGHTNESS,"b"+sensorId, brightness, sequenceNumber);
                 continue;
             }
             
@@ -162,7 +163,7 @@ public class TemperatureReceiverThread extends Thread
                 if (lastMessageNum==sequenceNumber) continue;
                 lastMessageNum=sequenceNumber;
                 float f=asInt/100f;
-                listener.setSensorValue(SensorType.HUMIDITY,"humi-"+channel, f, sequenceNumber);
+                listener.setSensorValue(source,SensorType.HUMIDITY,"humi-"+channel, f, sequenceNumber);
                 continue;
             }
             
@@ -194,7 +195,7 @@ public class TemperatureReceiverThread extends Thread
     
     public static interface SensorValueListener
     {
-        public void setSensorValue(SensorType type, String key, float value, int sequenceNumber);
+        public void setSensorValue(String source, SensorType type, String key, float value, int sequenceNumber);
     }
 
 }

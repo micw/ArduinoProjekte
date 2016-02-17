@@ -58,9 +58,10 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
     // ds18s20-49914 - Schuppen außen
     // ds18s20-57728 - Pool neu
     
-    public void setSensorValue(SensorType type, String key, float value, int sequenceNumber)
+    public void setSensorValue(String source, SensorType type, String key, float value, int sequenceNumber)
     {
-        System.err.println(DateFormat.getDateTimeInstance(DateFormat.SHORT,DateFormat.MEDIUM,Locale.GERMANY).format(System.currentTimeMillis())+" "+type+" "+key+": "+value+" (#"+sequenceNumber+")");
+        System.err.println(DateFormat.getDateTimeInstance(DateFormat.SHORT,DateFormat.MEDIUM,Locale.GERMANY)
+        		.format(System.currentTimeMillis())+" "+source+" "+type+" "+key+": "+value+" (#"+sequenceNumber+")");
         Value val=new Value();
         val.type=type;
         val.value=value;
@@ -70,12 +71,14 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
         if (sensorsAussen.contains(key))
         {
             Float minValue=null;
+            int count=0;
             for (String k: sensorsAussen)
             {
                 Value v=getValue(k,false);
+                if (v!=null) count++;
                 if (v!=null && (minValue==null || minValue>v.value)) minValue=v.value;
             }
-            if (minValue!=null) setSensorValue(SensorType.TEMPERATURE, "aussenMin", minValue, 0);
+            if (minValue!=null) setSensorValue("min("+count+" values)", SensorType.TEMPERATURE, "aussenMin", minValue, 0);
         }
         
     }
