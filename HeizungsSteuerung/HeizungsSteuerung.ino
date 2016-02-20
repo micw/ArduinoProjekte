@@ -41,8 +41,14 @@
  * - Display SDA <-> Analog Pin 4
  * - Display SCL <-> Analog Pin 5
  *
- * 7. (optional) ESP8266 als Serial->Wifi Adapter (Siehe Sketch ESP8266_Serial2WifiSender
+ * 7. (optional) ESP8266 als Serial->Wifi Adapter (siehe Sketch ESP8266_Serial2WifiSender)
  *    Sendet gemessene Temperaturen, Solltemperatur und Heizungs-Status als UDP-Broadcasts ins WLAN
+ * - GND an Power Regulator AMS1117
+ * - 3.3V an Power Regulator AMS1117
+ * - CH_PD via 10kOhm Pullup an 3,3V (zum Booten benötigt)
+ * - RX via 3kOhm an GND
+ * - RX via 2kOhm an D2
+ * - es geht auch 3,3/2 oder 3,3/2,2 kOhm (Spannungsteiler 5V->3V)
  *
  * 8. (optional) Außen-Temperatursensor DS18S20 oder DS1820, siehe http://datasheets.maximintegrated.com/en/ds/DS18S20.pdf
  * - GND angeschlossen
