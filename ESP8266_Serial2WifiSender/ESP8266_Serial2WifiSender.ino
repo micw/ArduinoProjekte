@@ -7,8 +7,8 @@
  * 
  * Stromversorgung via 3,3V Power Regulator AMS1117
  * ESP8266:
- * - GND an Power Regulator
- * - 3.3V an Power Regulator
+ * - GND an Power Regulator AMS1117
+ * - 3.3V an Power Regulator AMS1117
  * - CH_PD via 10kOhm Pullup an 3,3V (zum Booten benötigt)
  * 
  * Serielle Anbindung an Arduino:
