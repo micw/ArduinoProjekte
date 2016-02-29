@@ -16,11 +16,6 @@
  * 1. 433 MHz Transmitter
  * - VCC und GND verbinden
  * - DATA an ESP D1 (=Digital5)
- * 
- * 2. DS18x20 http://datasheets.maximintegrated.com/en/ds/DS18S20.pdf
- * - VCC und GND verbinden
- * - DATA an ESP D2 (=Digital4)
- * - Data <-> 4,7 kOhm <-> +5V  (2kOhm tut's auch)
  *   
  */
 
@@ -29,7 +24,7 @@
 #include <private_wifi.h>
 #include "RemoteTransmitter.h"
 
-#define UDP_RECEIVE_PORT 5001
+#define UDP_RECEIVE_PORT 5002
 #define RADIO_TRANSMITTER_PIN 5
 
 WiFiUDP Udp;
