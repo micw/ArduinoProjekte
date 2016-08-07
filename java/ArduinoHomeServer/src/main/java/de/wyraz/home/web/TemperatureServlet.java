@@ -296,6 +296,7 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
             writer.println("<item><title>Lab "+getFormattedValue("switch-30A")+" "+getFormattedValue("swtemp-30A")+"</title><description>"+getFormattedValue("temp-22317")+"</description></item>");
             writer.println("<item><title>Wohnz.</title><description>"+getFormattedValue("temp-16")+"/"+getFormattedValue("humi-16")+"</description></item>");
             writer.println("<item><title>Annab.</title><description>"+getFormattedValue("temp-17")+"/"+getFormattedValue("humi-17")+"</description></item>");
+            writer.println("<item><title>Felix</title><description>"+getFormattedValue("temp-18")+"/"+getFormattedValue("humi-18")+"</description></item>");
             writer.println("<item><title>Sauna</title><description>"+getFormattedValue("temp-47356")+"</description></item>");
             writer.println("<item><title>Helligkeit</title><description>"+getFormattedValue("b1")+"</description></item>");
             writer.println("</channel>");
