@@ -17,9 +17,6 @@ import java.security.cert.X509Certificate;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
-import org.influxdb.InfluxDB;
-import org.influxdb.InfluxDBFactory;
-
 public class SSLTrustCa {
 	public static void trustLetsEncryptRootCa() {
 		trustCa(SSLTrustCa.class.getResource("ca/DSTRootCAX3.der"));

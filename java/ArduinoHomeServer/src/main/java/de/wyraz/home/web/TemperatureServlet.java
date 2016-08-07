@@ -12,20 +12,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.influxdb.InfluxDB;
-import org.influxdb.InfluxDBFactory;
-import org.influxdb.dto.Point;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.squareup.okhttp.OkHttpClient;
 
 import de.wyraz.home.temp.TemperatureReceiverThread;
 import de.wyraz.home.temp.TemperatureReceiverThread.SensorType;
@@ -39,17 +33,20 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
 	}
 	
     protected TemperatureReceiverThread trt;
-    protected InfluxDB influxDB;
-    protected String dbName = "home";
+//    protected HttpClient client;
+
+//    protected InfluxDB influxDB;
+//    protected String dbName = "home";
     
     @Override
     public void init() throws ServletException
     {
         super.init();
-        InfluxDB influxDB = InfluxDBFactory.connect("https://ts.wyraz.de/db/","home","home");
-    	influxDB.createDatabase(dbName);
-    	influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS);
-    	this.influxDB=influxDB;
+//        InfluxDB influxDB = InfluxDBFactory.connect("https://ts.wyraz.de/db/","home","home");
+//    	influxDB.createDatabase(dbName);
+//    	influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS);
+//    	this.influxDB=influxDB;
+//        client = new HttpClientImpl("https://tsdb.wyraz.de/");
     	
         trt=new TemperatureReceiverThread(this);
         trt.start();
@@ -92,11 +89,22 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
         val.extraInfo=extraInfo;
         sensorValues.put(key, val);
         
-        Point point = Point.measurement(val.type.name())
-                .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
-                .field(key,value)
-                .build();
-        influxDB.write(dbName, "default", point);
+//        MetricBuilder builder = MetricBuilder.getInstance();
+//        builder.addMetric("home."+val.type.name())
+//        	.setDataPoint(System.currentTimeMillis(), value).addTag("key", key);
+//        try {
+//            Response response = client.pushMetrics(builder, ExpectResponse.SUMMARY);
+////            System.out.println(response);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+
+        
+//        Point point = Point.measurement(val.type.name())
+//                .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+//                .field(key,value)
+//                .build();
+//        influxDB.write(dbName, "default", point);
 
         
         if (sensorsAussen.contains(key))
@@ -287,6 +295,7 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
             writer.println("<item><title>Schuppen</title><description>"+getFormattedValue("temp-8675")+"</description></item>");
             writer.println("<item><title>Lab "+getFormattedValue("switch-30A")+" "+getFormattedValue("swtemp-30A")+"</title><description>"+getFormattedValue("temp-22317")+"</description></item>");
             writer.println("<item><title>Wohnz.</title><description>"+getFormattedValue("temp-16")+"/"+getFormattedValue("humi-16")+"</description></item>");
+            writer.println("<item><title>Annab.</title><description>"+getFormattedValue("temp-17")+"/"+getFormattedValue("humi-17")+"</description></item>");
             writer.println("<item><title>Sauna</title><description>"+getFormattedValue("temp-47356")+"</description></item>");
             writer.println("<item><title>Helligkeit</title><description>"+getFormattedValue("b1")+"</description></item>");
             writer.println("</channel>");
