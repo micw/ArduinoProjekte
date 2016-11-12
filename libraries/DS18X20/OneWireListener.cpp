@@ -63,7 +63,7 @@ void OneWireListener::readValues()
     		continue;
     	}
     	float temperature = dallasTemperature->getTempC(addr);
-    	if (!(temperature>=-55 && temperature<=125) && (temperature!=85.0f)) {
+    	if (temperature<-55 || temperature>125 || temperature==85.0f) {
     		// Temperature is only valid if it's in the Sensor's range and if it's not 85.0000 (this is the power on value)
     		continue;
     	}
