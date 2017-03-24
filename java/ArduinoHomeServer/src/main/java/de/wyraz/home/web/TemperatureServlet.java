@@ -59,6 +59,7 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
 			MqttConnectOptions options = new MqttConnectOptions();
 			options.setUserName("username");
 			options.setPassword("password".toCharArray());
+			options.setAutomaticReconnect(true);
 			mqtt.connect(options);
 		}
         catch (MqttException e)
