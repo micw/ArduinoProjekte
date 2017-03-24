@@ -18,6 +18,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -33,6 +37,7 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
 	}
 	
     protected TemperatureReceiverThread trt;
+    protected MqttClient mqtt;
 //    protected HttpClient client;
 
 //    protected InfluxDB influxDB;
@@ -47,6 +52,19 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
 //    	influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS);
 //    	this.influxDB=influxDB;
 //        client = new HttpClientImpl("https://tsdb.wyraz.de/");
+        
+        try
+        {
+			mqtt = new MqttClient("tcp://192.168.1.3", "legacy-gw");
+			MqttConnectOptions options = new MqttConnectOptions();
+			options.setUserName("username");
+			options.setPassword("password".toCharArray());
+			mqtt.connect(options);
+		}
+        catch (MqttException e)
+        {
+			e.printStackTrace();
+		}
     	
         trt=new TemperatureReceiverThread(this);
         trt.start();
@@ -88,6 +106,28 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
         val.ts=System.currentTimeMillis();
         val.extraInfo=extraInfo;
         sensorValues.put(key, val);
+        
+        NumberFormat nf=NumberFormat.getInstance(Locale.GERMANY);
+        nf.setMaximumFractionDigits(1);
+        nf.setGroupingUsed(false);
+        
+        try
+        {
+			MqttMessage message = new MqttMessage(nf.format(value).getBytes());
+	        switch (type)
+	        {
+	        	case TEMPERATURE:
+	        		mqtt.publish("sensor/"+key+"/temp", message);
+	        		break;
+	        	case HUMIDITY:
+	        		mqtt.publish("sensor/"+key+"/humid", message);
+	        		break;
+	        }
+        }
+        catch (Exception ex)
+        {
+        	ex.printStackTrace();
+        }
         
 //        MetricBuilder builder = MetricBuilder.getInstance();
 //        builder.addMetric("home."+val.type.name())
