@@ -108,7 +108,7 @@ public class TemperatureServlet extends HttpServlet implements SensorValueListen
         val.extraInfo=extraInfo;
         sensorValues.put(key, val);
         
-        NumberFormat nf=NumberFormat.getInstance(Locale.GERMANY);
+        NumberFormat nf=NumberFormat.getInstance(Locale.ENGLISH);
         nf.setMaximumFractionDigits(1);
         nf.setGroupingUsed(false);
         
