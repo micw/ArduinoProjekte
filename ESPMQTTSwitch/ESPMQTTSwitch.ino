@@ -19,7 +19,8 @@
 #include "RemoteTransmitter.h"
 
 #define MQTT_CLIENT_ID "ElroSwitch"
-#define MQTT_TOPIC "elroswitch/set/"
+#define MQTT_TOPIC_PREFIX "elroswitch/set/"
+#define MQTT_TOPIC "elroswitch/set/#"
 #define MQTT_STATE_TOPIC "elroswitch/state/"
 #define RADIO_TRANSMITTER_PIN 5
 
@@ -56,11 +57,11 @@ void doSwitch(int systemCode, char channel, int onoffAsInt) {
   _topic.concat(channel);
   _topic.toCharArray(responseTopic,128);
 
-  client.publish(responseTopic,onoff?"1":"0");
+  client.publish(responseTopic,onoff?"ON":"OFF");
   Serial.print("Published ");
   Serial.print(responseTopic);
   Serial.print(": ");
-  Serial.println(onoff?"1":"0");
+  Serial.println(onoff?"ON":"OFF");
   
 }
 
@@ -87,17 +88,25 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print(topic);
   Serial.print(": ");
 
-  if (length!=1) {
-    Serial.print(" ERR payload size != 1 byte: ");
-    Serial.println(length);
+  payload[length] = '\0';
+  String cmd = String((char*)payload);
+  bool onoff;
+
+  Serial.print(cmd);
+
+  if (cmd.equals("ON")) {
+    onoff=true;
+    Serial.println();
+  } else if (cmd.equals("OFF")) {
+    onoff=false;
+    Serial.println();
+  } else {
+    Serial.println(" unkown command");
     return;
   }
 
-  bool onoff=payload[0]=='1';
-  Serial.println(onoff?"ON":"OFF");
-
   char *ptr;
-  ptr = strtok(topic, MQTT_TOPIC);
+  ptr = strtok(topic, MQTT_TOPIC_PREFIX);
   if (!ptr) {
     Serial.println("ERR unexpected topic");
     return;
@@ -143,6 +152,7 @@ void setup_wifi() {
   Serial.print("Connecting to ");
   Serial.println(WIFI_SSID);
 
+  WiFi.mode(WIFI_STA); // disable hotspot
   WiFi.begin(WIFI_SSID,WIFI_PASSWORD);
   wdt_reset(); // Watchdock resetten
 
