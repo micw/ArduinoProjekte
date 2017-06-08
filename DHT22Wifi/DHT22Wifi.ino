@@ -26,12 +26,12 @@
 #define DHTPIN 2
 #define DHTTYPE DHT22
 
-const int sensorId = 0x0010;
+const int sensorId = 0x0012;
 
 const int send_port = 5000;
 WiFiUDP Udp;
 
-IPAddress BROADCAST_IP(255,255,255,255);
+IPAddress BROADCAST_IP(192,168,1,255);
 
 byte sensorMessageNum=0;
 
@@ -48,6 +48,7 @@ void setup() {
   Serial.println("Initializing");
   dht.begin();
 
+  WiFi.mode(WIFI_STA); // disable hotspot
   WiFi.begin(WIFI_SSID,WIFI_PASSWORD);
 }
 
