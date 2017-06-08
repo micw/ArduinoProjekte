@@ -35,7 +35,7 @@
 const int send_port = 5000;
 WiFiUDP Udp;
 
-IPAddress BROADCAST_IP(255,255,255,255);
+
 
 const char marker[]="@UDP ";
 const char markerLength=strlen(marker);
@@ -89,6 +89,9 @@ int parseHexByte(char* string, int offset) {
 }
 
 void loop() {
+
+  if (WiFi.status() != WL_CONNECTED) return;
+  
   // Read a line
   char* line=serialReadLn();
   // If line starts with marker:
@@ -122,6 +125,7 @@ void loop() {
     Serial.print("Sending: ");
     Serial.println((char*) (line + markerLength));
 
+    IPAddress BROADCAST_IP = ~WiFi.subnetMask() | WiFi.gatewayIP();
     // Broadcast UDP message
     Udp.beginPacket(BROADCAST_IP, send_port);
     Udp.write(msgBuffer,msgLength);
