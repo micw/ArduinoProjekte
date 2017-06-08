@@ -12,10 +12,10 @@
  *   - an D1: Akzeptbeleuchtung
  *   - an D2: Badschrank links
  *   - an D3: Badschrank rechts
- * - In den beiden Schränken je ein Türschalter (öffner)
+ * - In den beiden Schränken je ein Türschalter (Geschlossen bei geöffneter Tür)
  *   - ein Pol an GND, den anderen an:
- *   - an D7: Schalter Badschrank links
- *   - an D8: Schalter Badschrank rechts
+ *   - an D6: Schalter Badschrank links
+ *   - an D7: Schalter Badschrank rechts
  * - 12->5V Spannungsregler, um den NodeMCU vom LED-Travo mit versorgen zu lassen
  * 
  * Die MOSTFET können einige Ampere schalten (auch per PWM). Da die Eingänge aber nur mit 3,3V getrieben werden,
@@ -32,12 +32,12 @@
 #define LED_AKZENT     D1
 #define LED_SCHRANK1   D2
 #define LED_SCHRANK2   D3
-#define BTN_SCHRANK1   D7
-#define BTN_SCHRANK2   D8
+#define BTN_SCHRANK1   D6
+#define BTN_SCHRANK2   D7
 
 #define STATUS_INITIAL 0
-#define HELLIGKEIT_INITIAL 30
-#define HELLIGKEIT_SCHRANK_OFFEN 255
+#define HELLIGKEIT_INITIAL 0
+#define HELLIGKEIT_SCHRANK_OFFEN 1023
 
 #define FADE_UP_SPEED_MS 500
 #define FADE_DOWN_SPEED_MS 1500
@@ -45,15 +45,13 @@
 
 // Schließer: LOW, Öffner: HIGH
 #define BUTTON_PRESSED_VALUE HIGH
-
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 #include <private_wifi.h>
 #include <PubSubClient.h>
 
 #define MQTT_CLIENT_ID "BadLicht"
-#define MQTT_TOPIC "badlicht/set/"
-#define MQTT_STATE_TOPIC "badlicht/state/"
+#define MQTT_TOPIC "badlicht/set/#"
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -90,9 +88,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.println(value);
   
   if (value<0) value=0;
-  else if (value>255) value=255;
+  else if (value>1023) value=1023;
 
-  String command=String(topic).substring(strlen(MQTT_TOPIC));
+  String command=String(topic).substring(strlen(MQTT_TOPIC)-1);
 
   if (command.equals("schrankbr")) {
     helligkeitZielSchrank=value;
@@ -109,10 +107,21 @@ void callback(char* topic, byte* payload, unsigned int length) {
   sendStatus();
 }
 
-unsigned long nextStatusUpdate;
+unsigned long nextStatusUpdate=millis()+60000;
 
 void sendStatus() {
-//  client.publish(MQTT_STATE_TOPIC,onoff?"1":"0");
+  Serial.println("Updating status");
+
+  char payload[5];
+
+  String(statusSchrank).toCharArray(payload,5);
+  client.publish("badlicht/state/schrank",payload);
+  String(helligkeitZielSchrank).toCharArray(payload,5);
+  client.publish("badlicht/state/schrankbr",payload);
+  String(statusAkzent).toCharArray(payload,5);
+  client.publish("badlicht/state/akzent",payload);
+  String(helligkeitZielAkzent).toCharArray(payload,5);
+  client.publish("badlicht/state/akzentbr",payload);
 }
 
 void setup() {     
@@ -123,6 +132,8 @@ void setup() {
   pinMode(LED_SCHRANK2, OUTPUT);
   pinMode(BTN_SCHRANK1, INPUT_PULLUP);
   pinMode(BTN_SCHRANK2, INPUT_PULLUP);
+
+  analogWriteFreq(200);
 
   performFades();
   wdt_reset(); // Watchdog resetten
@@ -164,6 +175,8 @@ void performFade(int pin, LedFade &fade) {
 
   unsigned long now = millis();
 
+  int oldValue=fade.helligkeit_ist;
+
   if (fade.helligkeit_ist!=fade.helligkeit_soll) {
     double progress=((double) now-fade.zeit_start)/(fade.zeit_ende-fade.zeit_start);
     if (progress>1) {
@@ -172,11 +185,12 @@ void performFade(int pin, LedFade &fade) {
       double ist=fade.helligkeit_start+(fade.helligkeit_soll-fade.helligkeit_start)*progress;
       fade.helligkeit_ist=ist;
     }
+    delay(10);
   }
 
   analogWrite(pin, fade.helligkeit_ist);
 
-  if(now<=nextStatusUpdate) {
+  if(now>nextStatusUpdate) {
     nextStatusUpdate=now+60000;
     sendStatus();
   }
@@ -229,6 +243,7 @@ void loop() {
   } else {
     fadeTo(SCHRANK2,HELLIGKEIT_SCHRANK_OFFEN);
   }
+
   performFades();
 
   if (!client.connected()) {
